@@ -1,9 +1,9 @@
 module.exports = {
-  content: [
+  purge: [
     './pages/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
   ],
-  darkMode: 'class',
+  darkMode: 'class', // or 'media' or 'class'
   theme: {
     extend: {
       colors: {
@@ -59,7 +59,7 @@ module.exports = {
     },
     screens: {
       lg: { max: '1800px' },
-      md: { max: '990px' },
+      md: { max: '700px' },
       sm: { max: '600px' },
       xs: { max: '400px' },
       minmd: '1700px',
