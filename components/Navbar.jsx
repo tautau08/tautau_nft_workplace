@@ -114,7 +114,8 @@ const Navbar = () => {
           height={20}
           alt="close"
           onClick={() => setisOpen(false)}
-          className={theme === 'light' && 'filter invert'}
+          className={theme === 'light' ? 'filter invert' : undefined}
+
         />
       )
         : (
@@ -125,7 +126,7 @@ const Navbar = () => {
             height={25}
             alt="menu"
             onClick={() => setisOpen(true)}
-            className={theme === 'light' && 'filter invert'}
+            className={theme === 'light' ? 'filter invert' : undefined}
           />
         )
     }
