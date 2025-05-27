@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useContext } from 'react';
+import { useState, useMemo, useCallback, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
@@ -6,14 +6,21 @@ import { useTheme } from 'next-themes';
 
 import { Button, Input } from '../components';
 import images from '../assets';
+import { NFTContext } from '../context/NFTContext';
 
 const CreateNft = () => {
   const { theme } = useTheme();
   const [fileUrl, setfileUrl] = useState(null);
   const [formInput, setformInput] = useState({ price: '', name: '', description: '' });
-  const onDrop = useCallback(() => {
-    // upload image to the blockchain
+  const { uploadToIPFS } = useContext(NFTContext);
+  const { currentAccount } = useContext(NFTContext);
+  const router = useRouter();
+  const onDrop = useCallback(async (acceptedFile) => {
+    const url = await uploadToIPFS(acceptedFile[0]);
+
+    setfileUrl(url);
   }, []);
+
   const { getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject } = useDropzone({
     onDrop,
     accept: 'image/*',
@@ -24,7 +31,15 @@ const CreateNft = () => {
     ${isDragAccept ? 'border-file-accept' : undefined}
     ${isDragReject ? 'border-file-reject' : undefined}`
   ), [isDragActive, isDragAccept, isDragReject]);
-  console.log(formInput);
+
+  useEffect(() => {
+    // If no wallet is connected, redirect to home or show connect prompt
+    if (!currentAccount) {
+      router.push('/'); // Redirect to home page
+      // OR show a connect wallet prompt
+    }
+  }, [currentAccount, router]);
+
   return (
     <div className="flex justify-center sm:px-4 p-12 ">
       <div className="w-3/5 md:w-full">
