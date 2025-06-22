@@ -22,7 +22,7 @@ const MenuItems = ({ isMobile = false, active, setActive }) => {
     }
   };
   return (
-    <ul className={`list-none flexCenter ${isMobile ? 'flex-col gap-8 h-full ' : 'flex-row'}`}>
+    <ul className={`list-none flex justify-center ${isMobile ? 'flex-col gap-8 h-full ' : 'flex-row'}`}>
 
       {['Explore NFTs', 'Listed NFTs', 'My NFTs'].map((item, i) => (
         <li
@@ -91,7 +91,7 @@ const Navbar = () => {
             id="checkbox"
             onChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           />
-          <label htmlFor="checkbox" className="flexBetween w-8 bg-black rounded-2xl p-1 relative label">
+          <label htmlFor="checkbox" className="flex justify-between  w-8 bg-black rounded-2xl p-1 relative label">
             <i className="fas fa-sun" />
             <i className="fas fa-moon" />
             <div className="w-3 h-3 absolute bg-white rounded-full ball" />

@@ -12,13 +12,15 @@ const CreateNft = () => {
   const { theme } = useTheme();
   const [fileUrl, setfileUrl] = useState(null);
   const [formInput, setformInput] = useState({ price: '', name: '', description: '' });
-  const { uploadToIPFS } = useContext(NFTContext);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const { uploadToIPFS, createNft } = useContext(NFTContext);
   const { currentAccount } = useContext(NFTContext);
   const router = useRouter();
   const onDrop = useCallback(async (acceptedFile) => {
     const url = await uploadToIPFS(acceptedFile[0]);
 
     setfileUrl(url);
+    setUploadedFile(acceptedFile[0]);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject } = useDropzone({
@@ -55,7 +57,7 @@ const CreateNft = () => {
                 <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-xl">
                   JPG,PNG,GIF,SVG,WEBM Max 100mb
                 </p>
-                <div className="my-12 w-full flex justify-center">
+                <div className="my-12 w-[50%] mx-auto flex justify-center">
                   <Image
                     src={images.upload}
                     width={100}
@@ -68,7 +70,7 @@ const CreateNft = () => {
                 <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-sm">
                   Drag and Drop File
                 </p>
-                <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-sm mt-2">
+                <p className="font-poppins dark:text-white text-nft-black-1 font-semibold text-sm mt-2 mb-4">
                   or Browse media on your device
                 </p>
 
@@ -105,7 +107,7 @@ const CreateNft = () => {
           <Button
             btnName="Create NFT"
             classStyle="rounded-xl"
-            handleClick={() => {}}
+            handleClick={() => createNft(formInput, fileUrl, router, uploadedFile)}
           />
         </div>
       </div>
