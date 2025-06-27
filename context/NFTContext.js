@@ -12,7 +12,7 @@ export const NFTContext = React.createContext();
 export const NFTProvider = ({ children }) => {
   const nftCurrency = 'ETH';
   const [currentAccount, setCurrentAccount] = useState('');
-
+  const [isLoadingNFT, setIsLoadingNFT] = useState(false);
   const checkIfWalletIsConnected = async () => {
     if (!window.ethereum) return alert('Please install MetaMask');
     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -61,7 +61,7 @@ export const NFTProvider = ({ children }) => {
     }
   };
 
-  const createSale = async (url, formInputPrice, isReselling, id) => {
+  const processMarketplaceListing = async (url, formInputPrice, isReselling, id) => {
     const web3modal = new Web3Modal();
     const connection = await web3modal.connect();
     const provider = new ethers.providers.Web3Provider(connection);
@@ -69,15 +69,39 @@ export const NFTProvider = ({ children }) => {
 
     const price = ethers.utils.parseUnits(formInputPrice, 'ether');
     const contract = fetchContract(signer);
+
+    // ✅ Add validation for reselling
+    if (isReselling && id) {
+      try {
+      // Get user's NFTs to find the original purchase price
+        const userNFTs = await fetchMyNFTsOrCreatedNFTs('fetchMyNFTs');
+        const targetNFT = userNFTs.find((nft) => nft.tokenId.toString() === id.toString());
+
+        if (targetNFT) {
+          const originalPrice = parseFloat(targetNFT.price);
+          const newPrice = parseFloat(formInputPrice);
+
+          // Check if new price is less than original price
+          if (newPrice < originalPrice) {
+            throw new Error(`Cannot list below purchase price. You bought this NFT for ${originalPrice} ETH. Minimum listing price: ${originalPrice} ETH`);
+          }
+        }
+      } catch (error) {
+        console.error('Price validation error:', error);
+        throw error; // Re-throw to be caught by the calling component
+      }
+    }
+
     const listingPrice = await contract.getListingPrice();
 
-    const transaction = await contract.createToken(url, price, { value: listingPrice.toString() });
-    await transaction.wait();
+    const transaction = !isReselling
+      ? await contract.createToken(url, price, { value: listingPrice.toString() })
+      : await contract.resellToken(id, price, { value: listingPrice.toString() });
 
-    console.log(contract);
+    await transaction.wait();
   };
 
-  const createNft = async (formInput, fileURL, router, file) => {
+  const createNft = async (formInput, fileURL, router) => {
     const { name, description, price } = formInput;
     if (!name || !description || !price || !fileURL) return;
 
@@ -104,7 +128,7 @@ export const NFTProvider = ({ children }) => {
       const metadataURL = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
 
       // Create the NFT with metadata URL
-      await createSale(metadataURL, price);
+      await processMarketplaceListing(metadataURL, price);
 
       router.push('/');
     } catch (error) {
@@ -146,8 +170,54 @@ export const NFTProvider = ({ children }) => {
     }
   };
 
+  const fetchMyNFTsOrCreatedNFTs = async (type) => {
+    const web3Modal = new Web3Modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+    const signer = provider.getSigner();
+
+    const contract = fetchContract(signer);
+
+    const data = type === 'fetchItemsListed' ? await contract.fetchItemsListed() : await contract.fetchMyNFTs();
+
+    const items = await Promise.all(data.map(async ({ tokenId, seller, owner, price: unformattedPrice }) => {
+      const tokenURI = await contract.tokenURI(tokenId);
+      const { data: { image, name, description } } = await axios.get(tokenURI);
+
+      // Convert BigNumber to readable string
+      const price = ethers.utils.formatEther(unformattedPrice.toString());
+
+      return {
+        price: parseFloat(price).toFixed(4), // Convert to number then back to fixed decimal string
+        tokenId: tokenId.toNumber(),
+        seller,
+        owner,
+        image,
+        name,
+        description,
+        tokenURI,
+      };
+    }));
+
+    return items;
+  };
+
+  const purchaseNFT = async (nft) => {
+    const web3Modal = new Web3Modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(MarketAddress, MarketAddressABI, signer);
+
+    const price = ethers.utils.parseUnits(nft.price.toString(), 'ether');
+    const transaction = await contract.createMarketSale(nft.tokenId, { value: price });
+    setIsLoadingNFT(true);
+    await transaction.wait();
+    setIsLoadingNFT(false);
+  };
+
   return (
-    <NFTContext.Provider value={{ nftCurrency, connectWallet, currentAccount, uploadToIPFS, createNft, fetchNFTs }}>
+    <NFTContext.Provider value={{ nftCurrency, connectWallet, currentAccount, uploadToIPFS, createNft, fetchNFTs, fetchMyNFTsOrCreatedNFTs, purchaseNFT, processMarketplaceListing, isLoadingNFT }}>
       {children}
     </NFTContext.Provider>
   );

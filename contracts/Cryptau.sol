@@ -82,8 +82,8 @@ contract Cryptau is ERC721URIStorage{
 
    }   function createMarketItem(uint256 tokenId, uint256 price) private {
       // Ensure price is valid and listing fee is paid
-      require(price > 0, "Price must be atleast 1" );
-      require(msg.value == listingPrice, "Price must be equal to listing price");
+      require(price > listingPrice, "Price must be equal to listing price" );
+
 
       // Create a new market item in our mapping
       idToMarketItem[tokenId] = MarketItem(
@@ -105,42 +105,47 @@ contract Cryptau is ERC721URIStorage{
          price, 
          false
       );
-   }   function resellToken(uint256 tokenId, uint256 price) public payable {
-      // Only the current owner can resell their NFT
-      require(idToMarketItem[tokenId].owner == msg.sender, "Only item owner can perform this operation");
-      // Ensure listing fee is paid
-      require(msg.value == listingPrice, "Price must be equal to listing price");      // Update the marketplace item details for reselling
-      idToMarketItem[tokenId].sold = false;  // Mark as not sold
-      idToMarketItem[tokenId].seller = payable(msg.sender);  // Current owner becomes seller
-      idToMarketItem[tokenId].owner = payable(address(this));  // Marketplace becomes owner
-      idToMarketItem[tokenId].price = price;  // Update with new price
-      
-      // Decrement the number of sold items since this is back on the market
-      _itemsSold.decrement();
-
-      // Transfer the NFT from the seller back to the marketplace contract
-      _transfer(msg.sender, address(this), tokenId);
-   }
+   }  
    
-    function createMarketSale(uint256 tokenId) public payable {
-      // Get the price of the NFT
-      uint price = idToMarketItem[tokenId].price;
-      // Ensure buyer has sent the exact price amount
-      require(msg.value == price, "Please submit the asking price in order to complete the purchase");
-      
-      // Update ownership records
-      idToMarketItem[tokenId].owner = payable(msg.sender);  // Buyer becomes the new owner
-      idToMarketItem[tokenId].sold = true;                  // Mark as sold
-      idToMarketItem[tokenId].seller = payable(address(0)); // Clear seller address
-      
-      // Increment count of items sold
-      _itemsSold.increment();
+   function resellToken(uint256 tokenId, uint256 price) public payable {
+    // Check actual ERC721 ownership
+    require(ownerOf(tokenId) == msg.sender, "Only item owner can perform this operation");
 
-      // Distribute funds: marketplace owner gets the listing fee
-      payable(owner).transfer(listingPrice);
-      // Original seller gets the purchase amount
-      payable(idToMarketItem[tokenId].seller).transfer(msg.value);
-    }   function fetchMarket() public view returns(MarketItem[] memory) {
+    require(price > listingPrice, "Price must be equal to listing price" );
+
+    // Update marketplace tracking
+    idToMarketItem[tokenId].sold = false;
+    idToMarketItem[tokenId].seller = payable(msg.sender);
+    idToMarketItem[tokenId].owner = payable(address(this));
+    idToMarketItem[tokenId].price = price;
+    
+    _itemsSold.decrement();
+
+    // Transfer NFT back to marketplace
+    _transfer(msg.sender, address(this), tokenId);
+}
+    function createMarketSale(uint256 tokenId) public payable {
+    uint price = idToMarketItem[tokenId].price;
+    address seller = idToMarketItem[tokenId].seller;
+    
+    require(msg.value == price, "Please submit the asking price in order to complete the purchase");
+    
+    // Update marketplace tracking
+    idToMarketItem[tokenId].owner = payable(msg.sender);
+    idToMarketItem[tokenId].sold = true;
+    idToMarketItem[tokenId].seller = payable(address(0));
+    
+    _itemsSold.increment();
+
+    // IMPORTANT: Transfer actual NFT ownership to buyer
+    _transfer(address(this), msg.sender, tokenId);
+
+    // Distribute payments
+    payable(owner).transfer(listingPrice);
+    payable(seller).transfer(msg.value);
+}
+    
+     function fetchMarket() public view returns(MarketItem[] memory) {
      // Get the total number of tokens created
      uint itemCount = _tokenIds.current(); 
      // Calculate how many tokens are still unsold
@@ -169,38 +174,35 @@ contract Cryptau is ERC721URIStorage{
 
      // Return the array of unsold marketplace items
      return items;
-   }       function fetchMyNFTs() public view returns (MarketItem[] memory){
-      uint totalItemCount = _tokenIds.current();
-      uint itemCount = 0;
-      uint currentIndex = 0;
-      
-      // First loop: Count how many NFTs the caller owns
-      for (uint i = 0; i < totalItemCount; i++) {
-        // Check if NFT is owned by the caller
-        if (idToMarketItem[i + 1].owner == msg.sender) {
-          itemCount += 1;
+   }      function fetchMyNFTs() public view returns (MarketItem[] memory){
+    uint totalItemCount = _tokenIds.current();
+    uint itemCount = 0;
+    uint currentIndex = 0;
+    
+    // First loop: Count how many NFTs the caller actually owns (ERC721)
+    for (uint i = 0; i < totalItemCount; i++) {
+        // ✅ Check actual ERC721 ownership, not marketplace tracking
+        if (ownerOf(i + 1) == msg.sender) {
+            itemCount += 1;
         }
-      }
-      
-      // Create array to hold the caller's NFTs
-      MarketItem[] memory items = new MarketItem[](itemCount);
-      
-      // Second loop: Fill the array with the caller's NFTs
-      for (uint i = 0; i < totalItemCount; i++) {
-        // Check if NFT is owned by the caller
-        if (idToMarketItem[i + 1].owner == msg.sender) {
-          // Get the ID of the market item
-          uint currentId = i + 1;
-          // Get the reference to the current market item
-          MarketItem storage currentItem = idToMarketItem[currentId];
-          // Add to the array of results
-          items[currentIndex] = currentItem;
-          // Move to next position in results array
-          currentIndex += 1;
+    }
+    
+    // Create array to hold the caller's NFTs
+    MarketItem[] memory items = new MarketItem[](itemCount);
+    
+    // Second loop: Fill the array with the caller's NFTs
+    for (uint i = 0; i < totalItemCount; i++) {
+        // ✅ Check actual ERC721 ownership
+        if (ownerOf(i + 1) == msg.sender) {
+            uint currentId = i + 1;
+            MarketItem storage currentItem = idToMarketItem[currentId];
+            items[currentIndex] = currentItem;
+            currentIndex += 1;
         }
-      }
-      return items;
-    }     function fetchItemsListed() public view returns (MarketItem[] memory){
+    }
+    return items;
+}
+     function fetchItemsListed() public view returns (MarketItem[] memory){
       uint totalItemCount = _tokenIds.current();
       uint itemCount = 0;
       uint currentIndex = 0;
