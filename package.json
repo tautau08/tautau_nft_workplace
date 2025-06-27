@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@emailjs/nodejs": "^5.0.2",
     "@nomiclabs/hardhat-ethers": "2.0.5",
     "@nomiclabs/hardhat-waffle": "2.0.3",
     "@openzeppelin/contracts": "4.5.0",
@@ -26,6 +28,7 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-dropzone": "12.0.4",
+    "react-hot-toast": "^2.5.2",
     "uuid": "^11.1.0",
     "web3.storage": "^4.5.5",
     "web3modal": "1.9.5"
