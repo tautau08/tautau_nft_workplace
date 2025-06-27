@@ -1,18 +1,22 @@
-export const getCreators = (array) => {
-  const finalized = [];
+export const getTopMarketSellers = (array) => {
+  const creatorStats = [];
 
-  const result = array.reduce((res, currentValue) => {
+  const groupedBySeller = array.reduce((res, currentValue) => {
     (res[currentValue.seller] = res[currentValue.seller] || []).push(currentValue);
-
     return res;
   }, {});
 
-  Object.entries(result).forEach((itm) => {
-    const seller = itm[0];
-    const sumall = itm[1].map((item) => Number(item.price)).reduce((prev, curr) => prev + curr, 0);
+  Object.entries(groupedBySeller).forEach((item) => {
+    const seller = item[0];
+    const totalSalesValue = item[1]
+      .map((nft) => Number(nft.price))
+      .reduce((prev, curr) => prev + curr, 0);
 
-    finalized.push({ seller, sumall });
+    creatorStats.push({ seller, sumall: totalSalesValue });
   });
 
-  return finalized;
+  // Sort by total sales value (highest first) and limit to top 4
+  return creatorStats
+    .sort((a, b) => b.sumall - a.sumall)
+    .slice(0, 4);
 };

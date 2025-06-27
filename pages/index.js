@@ -5,11 +5,11 @@ import { useTheme } from 'next-themes';
 import { CreatorCard, NFTCard, Loader, SearchBar, Banner } from '../components';
 import images from '../assets';
 import { NFTContext } from '../context/NFTContext';
-import { getCreators } from '../utils/getTopCreators';
+import { getTopMarketSellers } from '../utils/getTopCreators';
 import { shortenAddress } from '../utils/shortenAddress';
 
 const Home = () => {
-  const { fetchNFTs } = useContext(NFTContext);
+  const { fetchNFTs, currentAccount } = useContext(NFTContext);
   const parentRef = useRef(null);
   const scrollRef = useRef(null);
   const { theme } = useTheme();
@@ -33,7 +33,7 @@ const Home = () => {
         setNftsCopy([]);
         setIsLoading(false);
       });
-  }, []);
+  }, [currentAccount]);
 
   useEffect(() => {
     const sortedNfts = [...nfts];
@@ -103,13 +103,13 @@ const Home = () => {
     };
   });
 
-  const topCreators = getCreators(nfts);
+  const topCreators = getTopMarketSellers(nfts);
 
   return (
     <div className="flex justify-center sm:px-4 p-12">
       <div className="w-full minmid:w-4/5">
         <Banner
-          name={<>Discover, collect and sell<br /> extraordinary NFTs</>}
+          name={<>Discover, collect and sell <br />Extraordinary NFTs!</>}
           childStyle="md:text-4xl sm:text-2xl xs:text-xl text-left"
           parentStyles="justify-start mb-6 h-72 sm:h-60 p-12 xs:p-4 xs:h-44 rounded-3xl "
         />
