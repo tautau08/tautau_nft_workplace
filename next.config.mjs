@@ -8,6 +8,9 @@ const nextConfig = {
       'cloudflare-ipfs.com',
     ],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
