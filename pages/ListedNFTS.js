@@ -16,8 +16,8 @@ const ListedNFTs = () => {
       })
       .catch((error) => {
         console.error('Error:', error);
-        setNfts([]);
         setIsLoading(false);
+        setNfts([]);
       });
   }, [currentAccount]);
 

@@ -51,9 +51,6 @@ const CreateNft = () => {
   ), [isDragActive, isDragAccept, isDragReject]);
 
   const handleCreateNFT = async () => {
-    console.log('Create NFT clicked');
-    console.log('Form data:', { formInput, fileUrl, uploadedFile });
-
     // Validation
     if (!formInput.name || !formInput.description || !formInput.price) {
       alert('Please fill in all fields');

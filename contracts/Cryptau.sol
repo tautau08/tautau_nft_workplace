@@ -80,7 +80,10 @@ contract Cryptau is ERC721URIStorage{
 
       return newTokenId;
 
-   }   function createMarketItem(uint256 tokenId, uint256 price) private {
+   }   
+   
+   
+   function createMarketItem(uint256 tokenId, uint256 price) private {
       // Ensure price is valid and listing fee is paid
       require(price > listingPrice, "Price must be equal to listing price" );
 
@@ -96,6 +99,9 @@ contract Cryptau is ERC721URIStorage{
 
       // Transfer the NFT from the seller to the marketplace contract
       _transfer(msg.sender, address(this), tokenId);
+
+       // Transfer listing fee to marketplace owner
+    payable(owner).transfer(listingPrice);
 
       // Emit event to notify listeners about the new listing
       emit MarketItemCreated(
@@ -123,8 +129,12 @@ contract Cryptau is ERC721URIStorage{
 
     // Transfer NFT back to marketplace
     _transfer(msg.sender, address(this), tokenId);
+
+    // Transfer listing fee to marketplace owner
+    payable(owner).transfer(listingPrice);
 }
-    function createMarketSale(uint256 tokenId) public payable {
+
+ function createMarketSale(uint256 tokenId) public payable {
     uint price = idToMarketItem[tokenId].price;
     address seller = idToMarketItem[tokenId].seller;
     
@@ -145,7 +155,7 @@ contract Cryptau is ERC721URIStorage{
     payable(seller).transfer(msg.value);
 }
     
-     function fetchMarket() public view returns(MarketItem[] memory) {
+function fetchMarket() public view returns(MarketItem[] memory) {
      // Get the total number of tokens created
      uint itemCount = _tokenIds.current(); 
      // Calculate how many tokens are still unsold
@@ -174,7 +184,9 @@ contract Cryptau is ERC721URIStorage{
 
      // Return the array of unsold marketplace items
      return items;
-   }      function fetchMyNFTs() public view returns (MarketItem[] memory){
+   }      
+   
+function fetchMyNFTs() public view returns (MarketItem[] memory){
     uint totalItemCount = _tokenIds.current();
     uint itemCount = 0;
     uint currentIndex = 0;
@@ -202,7 +214,8 @@ contract Cryptau is ERC721URIStorage{
     }
     return items;
 }
-     function fetchItemsListed() public view returns (MarketItem[] memory){
+
+function fetchItemsListed() public view returns (MarketItem[] memory){
       uint totalItemCount = _tokenIds.current();
       uint itemCount = 0;
       uint currentIndex = 0;
