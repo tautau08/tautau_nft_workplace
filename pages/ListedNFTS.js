@@ -1,4 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
+import toast from 'react-hot-toast';
 
 import { NFTContext } from '../context/NFTContext';
 import { Loader, NFTCard } from '../components';
@@ -16,6 +17,7 @@ const ListedNFTs = () => {
       })
       .catch((error) => {
         console.error('Error:', error);
+        toast.error('Failed to fetch NFTs. Please check your network or wallet connection.');
         setIsLoading(false);
         setNfts([]);
       });
