@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import toast from 'react-hot-toast';
 import emailjs from '@emailjs/browser';
@@ -10,7 +11,26 @@ import Button from './Button';
 const FooterLinks = ({ heading, items }) => (
   <div className="flex-1 justify-start item-start ">
     <h3 className="font-poppins dark:text-white text-nft-black-1 font-semibold text-xl mb-10">{heading}</h3>
-    {items.map((item, index) => (<p key={index} className="font-poppins dark:text-white text-nft-black-1 font-normal text-base cursor-pointer dark:hover:text-nft-gray-1 hover:text-nft-black-1 my-3">{item}</p>))}
+    {items.map((item, index) => {
+      const getRoute = (itemName) => {
+        switch (itemName) {
+          case 'Explore': return '/about';
+          case 'How it Works': return '/howItWorks';
+          case 'Contact Us': return '/contact';
+          case 'Help Center': return '/help';
+          case 'Terms of Service': return '/terms';
+          default: return '#';
+        }
+      };
+
+      return (
+        <Link key={index} href={getRoute(item)}>
+          <p className="font-poppins dark:text-white text-nft-black-1 font-normal text-base cursor-pointer dark:hover:text-nft-gray-1 hover:text-nft-black-1 my-3 transition-colors">
+            {item}
+          </p>
+        </Link>
+      );
+    })}
   </div>
 );
 
@@ -66,7 +86,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="flexCenter flex-col border-t dark:border-nft-black-1 border-nft-gray-1 sm:py-8 py-16">
+    <footer className="flexCenter flex-col border-t dark:border-nft-black-1 border-nft-gray-1 sm:py-1 py-10">
       <div className="w-full minmd:w-4/5 flex flex-row md:flex-col sm:px-4 sm:py-10 px-16 mt-6">
         <div className="flexStart flex-1 flex-col">
           <div className="flex items-center gap-2 cursor-pointer">
@@ -99,7 +119,7 @@ const Footer = () => {
 
         <div className="flex-1 flexBetweenStart flex-wrap ml-10 md:ml-0 md:mt-8">
           <FooterLinks heading="CrypTau" items={['Explore', 'How it Works', 'Contact Us']} />
-          <FooterLinks heading="Support" items={['Help Center', 'Terms of Service', 'Legal', 'Privacy Policy']} />
+          <FooterLinks heading="Support" items={['Help Center', 'Terms of Service']} />
         </div>
       </div>
 
@@ -109,18 +129,66 @@ const Footer = () => {
             CrypTau, Inc. All Rights Reserved.
           </p>
           <div className="flex flex-row sm:mt-4">
-            {[images.instagram, images.twitter, images.telegram, images.discord].map((image, index) => (
-              <div className="mx-2 cursor-pointer" key={index}>
-                <Image
-                  src={image}
-                  objectFit="contain"
-                  width={24}
-                  height={24}
-                  alt="social"
-                  className={theme === 'light' ? 'filter invert' : undefined}
-                />
-              </div>
-            ))}
+            <a
+              href="https://www.instagram.com/tauhidur_rahman_tauhid?igsh=MTE0NDIzNmdqdWw0Mw%3D%3D&utm_source=qr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-2 cursor-pointer hover:scale-110 transition-transform duration-300"
+            >
+              <Image
+                src={images.instagram}
+                objectFit="contain"
+                width={24}
+                height={24}
+                alt="Instagram"
+                className={theme === 'light' ? 'filter invert' : undefined}
+              />
+            </a>
+            <a
+              href="https://x.com/TauhidRahm64498"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-2 cursor-pointer hover:scale-110 transition-transform duration-300"
+            >
+              <Image
+                src={images.twitter}
+                objectFit="contain"
+                width={24}
+                height={24}
+                alt="Twitter/X"
+                className={theme === 'light' ? 'filter invert' : undefined}
+              />
+            </a>
+            <a
+              href="https://t.me/tautau08"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-2 cursor-pointer hover:scale-110 transition-transform duration-300"
+            >
+              <Image
+                src={images.telegram}
+                objectFit="contain"
+                width={24}
+                height={24}
+                alt="Telegram"
+                className={theme === 'light' ? 'filter invert' : undefined}
+              />
+            </a>
+            <a
+              href="https://discord.gg/your-discord-server"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mx-2 cursor-pointer hover:scale-110 transition-transform duration-300"
+            >
+              <Image
+                src={images.discord}
+                objectFit="contain"
+                width={24}
+                height={24}
+                alt="Discord"
+                className={theme === 'light' ? 'filter invert' : undefined}
+              />
+            </a>
           </div>
         </div>
       </div>
