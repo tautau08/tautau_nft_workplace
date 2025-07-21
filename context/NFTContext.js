@@ -70,10 +70,8 @@ export const NFTProvider = ({ children }) => {
     const price = ethers.utils.parseUnits(formInputPrice, 'ether');
     const contract = fetchContract(signer);
 
-    // ✅ Add validation for reselling
     if (isReselling && id) {
       try {
-      // Get user's NFTs to find the original purchase price
         const userNFTs = await fetchMyNFTsOrCreatedNFTs('fetchMyNFTs');
         const targetNFT = userNFTs.find((nft) => nft.tokenId.toString() === id.toString());
 
@@ -81,14 +79,13 @@ export const NFTProvider = ({ children }) => {
           const originalPrice = parseFloat(targetNFT.price);
           const newPrice = parseFloat(formInputPrice);
 
-          // Check if new price is less than original price
           if (newPrice < originalPrice) {
             throw new Error(`Cannot list below purchase price. You bought this NFT for ${originalPrice} ETH. Minimum listing price: ${originalPrice} ETH`);
           }
         }
       } catch (error) {
         console.error('Price validation error:', error);
-        throw error; // Re-throw to be caught by the calling component
+        throw error;
       }
     }
 
@@ -108,7 +105,6 @@ export const NFTProvider = ({ children }) => {
     const data = JSON.stringify({ name, description, image: fileURL });
 
     try {
-    // Upload metadata (JSON) to IPFS, not the file again
       const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
         method: 'POST',
         headers: {
@@ -127,7 +123,6 @@ export const NFTProvider = ({ children }) => {
 
       const metadataURL = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`;
 
-      // Create the NFT with metadata URL
       await processMarketplaceListing(metadataURL, price);
 
       router.push('/');
@@ -203,17 +198,57 @@ export const NFTProvider = ({ children }) => {
   };
 
   const purchaseNFT = async (nft) => {
-    const web3Modal = new Web3Modal();
-    const connection = await web3Modal.connect();
-    const provider = new ethers.providers.Web3Provider(connection);
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(MarketAddress, MarketAddressABI, signer);
+    try {
+      const web3Modal = new Web3Modal();
+      const connection = await web3Modal.connect();
+      const provider = new ethers.providers.Web3Provider(connection);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(MarketAddress, MarketAddressABI, signer);
 
-    const price = ethers.utils.parseUnits(nft.price.toString(), 'ether');
-    const transaction = await contract.createMarketSale(nft.tokenId, { value: price });
-    setIsLoadingNFT(true);
-    await transaction.wait();
-    setIsLoadingNFT(false);
+      // Add debugging logs
+      console.log('Attempting to purchase NFT:', {
+        tokenId: nft.tokenId,
+        price: nft.price,
+        seller: nft.seller,
+        owner: nft.owner,
+      });
+
+      // Check user's balance
+      const balance = await signer.getBalance();
+      const price = ethers.utils.parseUnits(nft.price.toString(), 'ether');
+
+      console.log('User balance:', ethers.utils.formatEther(balance), 'ETH');
+      console.log('NFT price:', nft.price, 'ETH');
+
+      if (balance.lt(price)) {
+        throw new Error(`Insufficient balance. Need ${nft.price} ETH but only have ${ethers.utils.formatEther(balance)} ETH`);
+      }
+
+      // Set loading before transaction
+      setIsLoadingNFT(true);
+
+      const transaction = await contract.createMarketSale(nft.tokenId, { value: price });
+      console.log('Transaction submitted:', transaction.hash);
+
+      await transaction.wait();
+      console.log('Transaction confirmed');
+
+      setIsLoadingNFT(false);
+    } catch (error) {
+      setIsLoadingNFT(false);
+      console.error('Purchase error details:', error);
+
+      // Provide user-friendly error messages
+      if (error.message.includes('insufficient funds')) {
+        throw new Error('Insufficient funds for transaction + gas fees');
+      } else if (error.message.includes('user rejected')) {
+        throw new Error('Transaction cancelled by user');
+      } else if (error.code === -32603) {
+        throw new Error('Smart contract execution failed. Please check if the NFT is still available.');
+      } else {
+        throw new Error(`Transaction failed: ${error.message}`);
+      }
+    }
   };
 
   return (

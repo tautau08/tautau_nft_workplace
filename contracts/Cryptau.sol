@@ -134,10 +134,15 @@ contract Cryptau is ERC721URIStorage{
     payable(owner).transfer(listingPrice);
 }
 
- function createMarketSale(uint256 tokenId) public payable {
+
+function createMarketSale(uint256 tokenId) public payable {
     uint price = idToMarketItem[tokenId].price;
     address seller = idToMarketItem[tokenId].seller;
     
+    // Add validation
+    require(price > 0, "Item not for sale");
+    require(!idToMarketItem[tokenId].sold, "Item already sold");
+    require(idToMarketItem[tokenId].owner == address(this), "Item not available");
     require(msg.value == price, "Please submit the asking price in order to complete the purchase");
     
     // Update marketplace tracking
@@ -147,12 +152,15 @@ contract Cryptau is ERC721URIStorage{
     
     _itemsSold.increment();
 
-    // IMPORTANT: Transfer actual NFT ownership to buyer
+    // Transfer actual NFT ownership to buyer
     _transfer(address(this), msg.sender, tokenId);
 
-    // Distribute payments
-    payable(owner).transfer(listingPrice);
-    payable(seller).transfer(msg.value);
+    // ✅ FIXED: Correct payment distribution
+    // Seller gets: purchase price minus listing fee
+    uint256 sellerAmount = msg.value - listingPrice;
+    
+    payable(owner).transfer(listingPrice);        // Marketplace fee
+    payable(seller).transfer(sellerAmount);       // Seller gets remainder
 }
     
 function fetchMarket() public view returns(MarketItem[] memory) {
