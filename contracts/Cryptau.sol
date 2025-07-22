@@ -22,8 +22,7 @@ contract Cryptau is ERC721URIStorage{
    // Counter for sold items - tracks how many items have been sold
    Counters.Counter private _itemsSold;
 
-   // Fee required to list an NFT on the marketplace (0.025 ETH)
-   uint256 listingPrice =0.025 ether;
+   uint256 listingPrice =0.000000001 ether;
 
    // Address of the marketplace owner - receives listing fees
     address payable owner;

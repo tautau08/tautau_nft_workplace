@@ -20,11 +20,15 @@ module.exports = {
     localhost: {
       url: 'http://127.0.0.1:8545',
     },
-    // Updated ngrok network with your actual URL
     ngrok: {
       url: process.env.NGROK_URL || 'https://90c2-103-82-173-157.ngrok-free.app',
       accounts: [privateKey],
       chainId: 31337,
+    },
+    megaeth: {
+      url: 'https://carrot.megaeth.com/rpc',
+      accounts: [privateKey],
+      chainId: 6342,
     },
     mumbai: {
       url: 'https://polygon-mumbai.infura.io/v3/250f3c38bd5340d78d4a628c3146477e',

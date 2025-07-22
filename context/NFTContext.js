@@ -134,7 +134,7 @@ export const NFTProvider = ({ children }) => {
 
   const fetchNFTs = async () => {
     try {
-      const provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
+      const provider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL);
       const contract = fetchContract(provider);
 
       const data = await contract.fetchMarket();
