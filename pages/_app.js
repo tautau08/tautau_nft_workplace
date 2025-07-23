@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ThemeProvider } from 'next-themes';
 import Script from 'next/script';
+import Head from 'next/head';
 import { Toaster } from 'react-hot-toast'; // ✅ Add this import
 
 import { NFTProvider } from '../context/NFTContext';
@@ -32,6 +33,10 @@ const MyApp = ({ Component, pageProps }) => {
   return (
     <NFTProvider>
       <ThemeProvider attribute="class">
+        <Head>
+          <title>CrypTau NFT Marketplace</title>
+          <link rel="icon" type="image/png" href="/logo.png" />
+        </Head>
         <div className="dark:bg-nft-dark bg-white min-h-screen">
           <Navbar />
           <div className="pt-65">
