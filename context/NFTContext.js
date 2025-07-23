@@ -201,7 +201,7 @@ export const NFTProvider = ({ children }) => {
       const price = ethers.utils.formatEther(unformattedPrice.toString());
 
       return {
-        price: parseFloat(price).toFixed(4), // Convert to number then back to fixed decimal string
+        price: parseFloat(price).toFixed(8), // Convert to number then back to fixed decimal string
         tokenId: tokenId.toNumber(),
         seller,
         owner,
