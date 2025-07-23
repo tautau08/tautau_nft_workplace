@@ -2,7 +2,7 @@
 
 A modern, full-stack NFT marketplace where you can mint, buy, and sell NFTs on the MegaETH testnet.
 
-![CrypTau Banner](public/logo.png)
+![CrypTau Banner](src/app/favicon.ico)
 
 ## 🚀 Live Demo
 

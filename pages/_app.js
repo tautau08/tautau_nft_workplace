@@ -35,7 +35,7 @@ const MyApp = ({ Component, pageProps }) => {
       <ThemeProvider attribute="class">
         <Head>
           <title>CrypTau NFT Marketplace</title>
-          <link rel="icon" type="image/png" href="/logo.png" />
+          <link rel="icon" href="/favicon.ico" />
         </Head>
         <div className="dark:bg-nft-dark bg-white min-h-screen">
           <Navbar />
