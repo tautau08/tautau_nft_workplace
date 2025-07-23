@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import Web3Modal from 'web3modal';
 import { ethers } from 'ethers';
 import axios from 'axios';
@@ -255,16 +256,18 @@ export const NFTProvider = ({ children }) => {
       setIsLoadingNFT(false);
       console.error('Purchase error details:', error);
 
-      // Provide user-friendly error messages
+      let toastMsg = '';
       if (error.message.includes('insufficient funds')) {
-        throw new Error('Insufficient funds for transaction + gas fees');
+        toastMsg = 'Insufficient funds for transaction + gas fees';
       } else if (error.message.includes('user rejected')) {
-        throw new Error('Transaction cancelled by user');
+        toastMsg = 'Transaction cancelled by user';
       } else if (error.code === -32603) {
-        throw new Error('Smart contract execution failed. Please check if the NFT is still available.');
+        toastMsg = 'Smart contract execution failed. Please check if the NFT is still available.';
       } else {
-        throw new Error(`Transaction failed: ${error.message}`);
+        toastMsg = `Transaction failed: ${error.message}`;
       }
+      toast.error(toastMsg); // Show error toast
+      throw new Error(toastMsg);
     }
   };
 
