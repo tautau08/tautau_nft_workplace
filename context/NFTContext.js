@@ -140,14 +140,30 @@ export const NFTProvider = ({ children }) => {
       const data = await contract.fetchMarket();
 
       const items = await Promise.all(data.map(async ({ tokenId, seller, owner, price: unformattedPrice }) => {
-        const tokenURI = await contract.tokenURI(tokenId);
-        const { data: { image, name, description } } = await axios.get(tokenURI);
+        let image = '';
+        let name = '';
+        let description = '';
+        let tokenURI = '';
+        let metadataError = false;
 
-        // Convert BigNumber to readable string
+        try {
+          tokenURI = await contract.tokenURI(tokenId);
+          const { data: meta } = await axios.get(tokenURI);
+          image = meta.image;
+          name = meta.name;
+          description = meta.description;
+        } catch (error) {
+          metadataError = true;
+        }
+
+        if (metadataError) {
+          return null;
+        }
+
         const price = ethers.utils.formatEther(unformattedPrice.toString());
 
         return {
-          price: parseFloat(price).toFixed(4), // Convert to number then back to fixed decimal string
+          price: parseFloat(price).toFixed(4),
           tokenId: tokenId.toNumber(),
           seller,
           owner,
@@ -158,7 +174,8 @@ export const NFTProvider = ({ children }) => {
         };
       }));
 
-      return items;
+      // Filter out NFTs with missing metadata (if using return null)
+      return items.filter((item) => item !== null);
     } catch (error) {
       console.error('Error in fetchNFTs:', error);
       return [];
